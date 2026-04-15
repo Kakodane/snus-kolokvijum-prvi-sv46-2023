@@ -6,9 +6,10 @@ using System.Threading.Tasks;
 
 namespace SNUS_kolokvijum_1
 {
-    public enum JobType
+    public enum Status
     {
-        IO,
-        Prime
+        Abort,
+        Fail,
+        Success
     }
 }

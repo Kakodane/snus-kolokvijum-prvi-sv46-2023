@@ -29,24 +29,24 @@ namespace SNUS_kolokvijum_1
                     Priority = int.Parse(x.Attribute("Priority")?.Value)
                 })
                 .ToList();
-            Queue<Job> jobQueue = new Queue<Job>(jobs);
             List<Task> workers = new List<Task>();
             List<JobHandle> jobHandles= new List<JobHandle>();
             object listLock = new object();
             for (int i = 0; i < workerCount; i++)
             {
-                workers.Add(Task.Run(() =>
+                workers.Add(Task.Run(async () =>
                 {
-                    while (jobQueue.Count > 0)
+                    while (true)
                     {
-                        Job job;
-                        lock (_lock)
+                        int index = Random.Shared.Next(jobs.Count);
+                        Job randomJob = jobs[index];
+                        
+                        if (randomJob != null)
                         {
-                            if (jobQueue.Count > 0) job = jobQueue.Dequeue();
-                            else break;
-                        }
-                        if (job != null)
-                        {
+                            Job job = new Job();
+                            job.Type = randomJob.Type;
+                            job.Payload = randomJob.Payload;
+                            job.Priority= randomJob.Priority;
                             JobHandle jh = system.Submit(job);
                             if (jh != null)
                             {
@@ -55,24 +55,29 @@ namespace SNUS_kolokvijum_1
                                     jobHandles.Add(jh);
                                 }
                             }
+                            await Task.Delay(Random.Shared.Next(100, 1000));
                         }
                     }
                 }));
             }
             await Task.WhenAll(workers);
-            Console.WriteLine("Čekam da radnici završe obradu...");
+            Console.WriteLine("Waiting for workers...");
             var allTasks = jobHandles.Select(jh => jh.Result);
 
             try
             {
                 await Task.WhenAll(allTasks);
-                Console.WriteLine("Svi poslovi su obrađeni!");
+                Console.WriteLine("All jobs are processed!");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Došlo je do greške tokom obrade: {ex.Message}");
+                Console.WriteLine($"Error: {ex.Message}");
             }
 
+            await Task.WhenAll(ProcessingSystem.writeTasks);
+             Console.WriteLine("All jobs are written in file!");
         }
     }
+
+    
 }

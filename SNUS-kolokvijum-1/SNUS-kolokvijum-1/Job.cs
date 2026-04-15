@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 
 namespace SNUS_kolokvijum_1
 {
-    internal class Job
+    public class Job
     {
         public Guid Id { get; set; }= Guid.NewGuid();
         public JobType Type { get; set; }
         public string? Payload { get; set; }
         public int Priority { get; set; }
-
+        public int Retries { get; set; } = 0;
     }
 }
