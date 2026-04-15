@@ -1,0 +1,15 @@
+C:\Users\vvito\OneDrive\Desktop\snus-kolokvijum-prvi-sv46-2023\SNUS-kolokvijum-1\SNUS-kolokvijum-1\obj\Debug\net8.0\SNUS-kolokvijum-1.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\vvito\OneDrive\Desktop\snus-kolokvijum-prvi-sv46-2023\SNUS-kolokvijum-1\SNUS-kolokvijum-1\obj\Debug\net8.0\SNUS-kolokvijum-1.AssemblyInfoInputs.cache
+C:\Users\vvito\OneDrive\Desktop\snus-kolokvijum-prvi-sv46-2023\SNUS-kolokvijum-1\SNUS-kolokvijum-1\obj\Debug\net8.0\SNUS-kolokvijum-1.AssemblyInfo.cs
+C:\Users\vvito\OneDrive\Desktop\snus-kolokvijum-prvi-sv46-2023\SNUS-kolokvijum-1\SNUS-kolokvijum-1\obj\Debug\net8.0\SNUS-kolokvijum-1.csproj.CoreCompileInputs.cache
+C:\Users\vvito\OneDrive\Desktop\snus-kolokvijum-prvi-sv46-2023\SNUS-kolokvijum-1\SNUS-kolokvijum-1\obj\Debug\net8.0\SNUS-kolokvijum-1.sourcelink.json
+C:\Users\vvito\OneDrive\Desktop\snus-kolokvijum-prvi-sv46-2023\SNUS-kolokvijum-1\SNUS-kolokvijum-1\bin\Debug\net8.0\SNUS-kolokvijum-1.exe
+C:\Users\vvito\OneDrive\Desktop\snus-kolokvijum-prvi-sv46-2023\SNUS-kolokvijum-1\SNUS-kolokvijum-1\bin\Debug\net8.0\SNUS-kolokvijum-1.deps.json
+C:\Users\vvito\OneDrive\Desktop\snus-kolokvijum-prvi-sv46-2023\SNUS-kolokvijum-1\SNUS-kolokvijum-1\bin\Debug\net8.0\SNUS-kolokvijum-1.runtimeconfig.json
+C:\Users\vvito\OneDrive\Desktop\snus-kolokvijum-prvi-sv46-2023\SNUS-kolokvijum-1\SNUS-kolokvijum-1\bin\Debug\net8.0\SNUS-kolokvijum-1.dll
+C:\Users\vvito\OneDrive\Desktop\snus-kolokvijum-prvi-sv46-2023\SNUS-kolokvijum-1\SNUS-kolokvijum-1\bin\Debug\net8.0\SNUS-kolokvijum-1.pdb
+C:\Users\vvito\OneDrive\Desktop\snus-kolokvijum-prvi-sv46-2023\SNUS-kolokvijum-1\SNUS-kolokvijum-1\obj\Debug\net8.0\SNUS-kolokvijum-1.dll
+C:\Users\vvito\OneDrive\Desktop\snus-kolokvijum-prvi-sv46-2023\SNUS-kolokvijum-1\SNUS-kolokvijum-1\obj\Debug\net8.0\refint\SNUS-kolokvijum-1.dll
+C:\Users\vvito\OneDrive\Desktop\snus-kolokvijum-prvi-sv46-2023\SNUS-kolokvijum-1\SNUS-kolokvijum-1\obj\Debug\net8.0\SNUS-kolokvijum-1.pdb
+C:\Users\vvito\OneDrive\Desktop\snus-kolokvijum-prvi-sv46-2023\SNUS-kolokvijum-1\SNUS-kolokvijum-1\obj\Debug\net8.0\SNUS-kolokvijum-1.genruntimeconfig.cache
+C:\Users\vvito\OneDrive\Desktop\snus-kolokvijum-prvi-sv46-2023\SNUS-kolokvijum-1\SNUS-kolokvijum-1\obj\Debug\net8.0\ref\SNUS-kolokvijum-1.dll
