@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("SNUS-kolokvijum-1")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ca738d1c3ca8040a01d2ecee0094a19104d522a2")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1e5ad1df5d3788efd4e6d36e328385a995b1dff7")]
 [assembly: System.Reflection.AssemblyProductAttribute("SNUS-kolokvijum-1")]
 [assembly: System.Reflection.AssemblyTitleAttribute("SNUS-kolokvijum-1")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

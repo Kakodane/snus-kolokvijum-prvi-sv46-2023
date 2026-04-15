@@ -10,6 +10,7 @@ namespace SNUS_kolokvijum_1
     internal class Program
     {
         private static List<int> doneJobsIds= new List<int>();
+        private readonly static object _lock = new object();
         static async Task Main(string[] args)
         {
             string xml = File.ReadAllText("SystemConfig.xml");
@@ -28,37 +29,50 @@ namespace SNUS_kolokvijum_1
                     Priority = int.Parse(x.Attribute("Priority")?.Value)
                 })
                 .ToList();
-            List<JobHandle> jobHandles = new List<JobHandle>();
-            foreach (Job job in jobs)
+            Queue<Job> jobQueue = new Queue<Job>(jobs);
+            List<Task> workers = new List<Task>();
+            List<JobHandle> jobHandles= new List<JobHandle>();
+            object listLock = new object();
+            for (int i = 0; i < workerCount; i++)
             {
-                JobHandle jh= await system.Submit(job);
-                if (jh == null)
+                workers.Add(Task.Run(() =>
                 {
-                    Console.WriteLine($"Job with Id: {job.Id} has already been processed. Skipping.");
-                    continue;
-                }
-                Console.WriteLine($"Submitted Job: Type: {job.Type}, Payload: {job.Payload}, Priority: {job.Priority}, JobHandle Id: {jh.Id}");
-                    jobHandles.Add(jh);
+                    while (jobQueue.Count > 0)
+                    {
+                        Job job;
+                        lock (_lock)
+                        {
+                            if (jobQueue.Count > 0) job = jobQueue.Dequeue();
+                            else break;
+                        }
+                        if (job != null)
+                        {
+                            JobHandle jh = system.Submit(job);
+                            if (jh != null)
+                            {
+                                lock (listLock)
+                                {
+                                    jobHandles.Add(jh);
+                                }
+                            }
+                        }
+                    }
+                }));
             }
-            await Task.WhenAll(jobHandles.Select(jh => jh.Result));
-            //jobs=jobs.OrderBy(x=>x.Priority).ToList();
-            //Queue<Job> jobQueue = new Queue<Job>();
-            //for(int i=0;i<maxQueueSize && i<jobs.Count; i++)
-            //{
-            //    jobQueue.Enqueue(jobs[i]);
-            //}
-            //for(int i=0;i<workerCount && jobQueue.Count>0; i++)
-            //{
-            //    Job job = jobQueue.Dequeue();
-            //    if(doneJobsIds.Contains(job.Id.GetHashCode()))
-            //    {
-            //        Console.WriteLine($"Job with Id: {job.Id} has already been processed. Skipping.");
-            //        continue;
-            //    }
-            //    JobHandle jobHandle = await ProcessingSystem.Submit(job);
-            //    doneJobsIds.Add(jobHandle.Id.GetHashCode());
-            //    Console.WriteLine($"Submitted Job: Type: {job.Type}, Payload: {job.Payload}, Priority: {job.Priority}, JobHandle Id: {jobHandle.Id}");
-            //}
+            await Task.WhenAll(workers);
+            Console.WriteLine("Čekam da radnici završe obradu...");
+            var allTasks = jobHandles.Select(jh => jh.Result);
+
+            try
+            {
+                await Task.WhenAll(allTasks);
+                Console.WriteLine("Svi poslovi su obrađeni!");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Došlo je do greške tokom obrade: {ex.Message}");
+            }
+
         }
     }
 }

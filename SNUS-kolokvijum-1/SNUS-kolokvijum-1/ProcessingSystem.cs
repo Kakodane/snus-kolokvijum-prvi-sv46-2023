@@ -9,20 +9,22 @@ namespace SNUS_kolokvijum_1
 {
     internal class ProcessingSystem
     {
-        private readonly PriorityQueue<Job, int> queue = new();
+        private readonly PriorityQueue<(Job, TaskCompletionSource<int>),int> queue = new();
         private readonly object _lock = new();
         private readonly HashSet<Guid> processedIds = new();
         private readonly int maxQueueSize;
-        private readonly SemaphoreSlim semaphore;
+        private readonly SemaphoreSlim semaphore=new SemaphoreSlim(0);
 
         public ProcessingSystem(int workerCount, int maxQueueSize)
         {
             this.maxQueueSize = maxQueueSize;
-            semaphore = new SemaphoreSlim(workerCount);
+            for(int i = 0; i < workerCount; i++)
+            {
+                Task.Run(Consume);
+            }
         }
-        public Task<JobHandle> Submit(Job job)
-        {
-            
+        public JobHandle Submit(Job job)
+        { 
             lock (_lock)
             {
                 if (processedIds.Contains(job.Id))
@@ -35,30 +37,37 @@ namespace SNUS_kolokvijum_1
                 Console.WriteLine($"Queue je pun, odbacujem job {job.Id}.");
                 return null;
                 }
-            
-                queue.Enqueue(job, job.Priority);
+                TaskCompletionSource<int> tcs = new TaskCompletionSource<int>();
+                queue.Enqueue((job, tcs),job.Priority);
                 processedIds.Add(job.Id);
+                semaphore.Release();
+                return new JobHandle { Result = tcs.Task };
             }
-            Task<int> processingTask = Task.Run(async () =>
+        }
+
+        private async Task Consume()
+        {
+            while (true)
             {
                 await semaphore.WaitAsync();
+
+                Job job;
+                TaskCompletionSource<int> tcs= new TaskCompletionSource<int>();
+                lock (_lock)
+                {
+                    if (queue.Count == 0) continue;
+                    (job,tcs)=queue.Dequeue();
+                }
                 try
                 {
-                    Job toProcess;
-                    lock (_lock)
-                    {
-                        toProcess = queue.Dequeue();
-                    }
-                    return await HandleJob(toProcess);
+                    int result = await HandleJob(job);
+                    tcs.SetResult(result);
                 }
-                finally
+                catch (Exception ex)
                 {
-                    semaphore.Release();
+                    tcs.SetException(ex);
                 }
-            });
-           
-            JobHandle handle = new JobHandle { Id = job.Id, Result = processingTask };
-            return Task.FromResult(handle);
+            }
         }
         public static async Task<int> HandleJob(Job job)
         {
@@ -68,6 +77,7 @@ namespace SNUS_kolokvijum_1
                 Console.WriteLine($"Processing IO job with {delay} numbers.");
                 //Thread.Sleep(delay);
                 await Task.Delay(delay);
+                Console.WriteLine($"Finished processing IO job with {delay} ms delay.");
                 int randNum = Random.Shared.Next(0, 101);
                 return randNum ;
             }
