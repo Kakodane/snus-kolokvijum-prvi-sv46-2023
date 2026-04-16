@@ -23,6 +23,7 @@ namespace SNUS_kolokvijum_1
         public event EventHandler<CustomEventArgs> jobFailed;
 
         public static List<Task> writeTasks= new List<Task>();
+        private static readonly object _writeTasksLock = new();
 
         private readonly Dictionary<Job,long> processedJobs= new Dictionary<Job,long>();
 
@@ -31,11 +32,13 @@ namespace SNUS_kolokvijum_1
             this.maxQueueSize = maxQueueSize;
             jobCompleted += (s, e) =>
             {
-                writeTasks.Add(Task.Run(()=>WriteInFile(s,e)));
+                Task t = Task.Run(() => WriteInFile(s, e));
+                lock (_writeTasksLock) { writeTasks.Add(t); }
             };
             jobFailed += (s, e) =>
             {
-                writeTasks.Add(Task.Run(() => WriteInFile(s, e)));
+                Task t = Task.Run(() => WriteInFile(s, e));
+                lock (_writeTasksLock) { writeTasks.Add(t); }
             };
             for(int i = 0; i < workerCount; i++)
             {
@@ -44,7 +47,7 @@ namespace SNUS_kolokvijum_1
 
             Task.Run(async () => //moze i while true pa da se radi task.delay(60000)
             {
-                using var timer = new PeriodicTimer(TimeSpan.FromMinutes(0.05));
+                using var timer = new PeriodicTimer(TimeSpan.FromMinutes(0.1));
                 int reportCounter = 0;
 
                 while (await timer.WaitForNextTickAsync())
@@ -79,7 +82,7 @@ namespace SNUS_kolokvijum_1
                 queue.Enqueue((job, tcs),job.Priority);
                 processedIds.Add(job.Id);
                 semaphore.Release();
-                return new JobHandle { Result = tcs.Task };
+                return new JobHandle {Id=job.Id, Result = tcs.Task };
             }
         }
 
@@ -130,7 +133,10 @@ namespace SNUS_kolokvijum_1
                     {
                         tcs.SetResult(result);
                         jobCompleted?.Invoke(this, new CustomEventArgs(job,result,Status.Success));
-                        processedJobs.Add(job, sw.ElapsedMilliseconds);
+                        lock (_lock)
+                        {
+                            processedJobs.Add(job, sw.ElapsedMilliseconds);
+                        }
                     }
                 }
                 catch (Exception ex)
@@ -157,6 +163,8 @@ namespace SNUS_kolokvijum_1
 
                 int numbers = int.Parse(parts[0].Split(':')[1].Replace("_", ""));
                 int threads = int.Parse(parts[1].Split(':')[1]);
+                if (threads < 1) threads = 1;
+                if (threads > 8) threads = 8;
                 Console.WriteLine($"Processing Prime job with {numbers} numbers and {threads} threads.");
                 int numberOfPrimes = 0;
                 List<Task> tasks = new List<Task>();
@@ -235,18 +243,25 @@ namespace SNUS_kolokvijum_1
         {
             lock (_lock)
             {
-                var numOfJobsDonePerType = processedJobs.GroupBy(j => j.Key.Type).ToDictionary(g => g.Key,g=> g.Count());
-                var avgTimePerType = processedJobs.GroupBy(j => j.Key.Type).ToDictionary(g => g.Key, g => g.Average(j => j.Value));
-                var numOfAborts = processedJobs.Count(j => j.Key.Retries == 3);
+                var reportData = processedJobs
+                    .GroupBy(j => j.Key.Type)
+                    .Select(g => new
+                        {
+                            Type = g.Key,
+                            Count = g.Count(),
+                            AvgTime = g.Average(j => j.Value),
+                            AbortCount = g.Count(j => j.Key.Retries >= 3)
+                        });
 
-
-
-                XElement report = new XElement($"Report", new XAttribute("GeneratedAt", DateTime.Now),
+                XElement report = new XElement("Report",
+                    new XAttribute("GeneratedAt", DateTime.Now),
                     new XAttribute("ReportIndex", num),
-                    numOfJobsDonePerType.Select(kv => new XElement(kv.Key.ToString(), new XAttribute("Count", kv.Value))),
-                    avgTimePerType.Select(kv => new XElement(kv.Key.ToString(), new XAttribute("AverageTimeMilliseconds", kv.Value))),
-                    new XElement("AbortedJobs", new XAttribute("Count", numOfAborts))
-                    );
+                    reportData.Select(r => new XElement(r.Type.ToString(),
+                        new XAttribute("Count", r.Count),
+                        new XAttribute("AverageTimeMilliseconds", Math.Round(r.AvgTime, 2)),
+                        new XAttribute("AbortCount", r.AbortCount)
+                    ))
+                );
 
 
                 report.Save($"report_{num}.xml");

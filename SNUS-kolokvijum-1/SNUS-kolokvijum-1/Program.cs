@@ -9,7 +9,6 @@ namespace SNUS_kolokvijum_1
 {
     internal class Program
     {
-        private static List<int> doneJobsIds= new List<int>();
         private readonly static object _lock = new object();
         static async Task Main(string[] args)
         {
@@ -32,11 +31,13 @@ namespace SNUS_kolokvijum_1
             List<Task> workers = new List<Task>();
             List<JobHandle> jobHandles= new List<JobHandle>();
             object listLock = new object();
+
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(125));
             for (int i = 0; i < workerCount; i++)
             {
                 workers.Add(Task.Run(async () =>
                 {
-                    while (true)
+                    while (!cts.Token.IsCancellationRequested)
                     {
                         int index = Random.Shared.Next(jobs.Count);
                         Job randomJob = jobs[index];
